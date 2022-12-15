@@ -4,6 +4,9 @@ Capacitor plugin for Datecs Mobile printers
 
 All SDK API are imported from this https://github.com/giorgiofellipe/cordova-plugin-datecs-printer
 
+Example:
+https://github.com/megaxayda/test-plugin
+
 ## Install
 
 ```bash
