@@ -1,10 +1,27 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { DatecsPrinterPlugin } from './definitions';
+import type { DatecsPrinterPlugin, ConnectionStatus } from './definitions';
 
-export class DatecsPrinterWeb extends WebPlugin implements DatecsPrinterPlugin {
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+export class DatecsPrinterPluginWeb
+  extends WebPlugin
+  implements DatecsPrinterPlugin
+{
+  constructor() {
+    super();
+  }
+  connect(): Promise<void> {
+    throw this.unavailable('Not available on web.');
+  }
+
+  print(): Promise<void> {
+    throw this.unavailable('Not available on web.');
+  }
+
+  getBluetoothPairedDevices(): Promise<any> {
+    throw this.unavailable('Not available on web.');
+  }
+
+  getConnectionStatus(): Promise<ConnectionStatus> {
+    throw this.unavailable('Not available on web.');
   }
 }
