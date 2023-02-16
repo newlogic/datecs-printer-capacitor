@@ -21,6 +21,8 @@ npx cap sync
 * [`getConnectionStatus()`](#getconnectionstatus)
 * [`getBluetoothPairedDevices()`](#getbluetoothpaireddevices)
 * [`addListener('bluetoothChange', ...)`](#addlistenerbluetoothchange)
+* [`addListener('bluetoothSearchChange', ...)`](#addlistenerbluetoothsearchchange)
+* [`scanBluetoothDevice()`](#scanbluetoothdevice)
 * [`removeAllListeners()`](#removealllisteners)
 * [`connect(...)`](#connect)
 * [`print(...)`](#print)
@@ -72,6 +74,35 @@ Listens for bluetooth datecs printer connection status changes.
 | **`listenerFunc`** | <code>(res: <a href="#connectionstatus">ConnectionStatus</a>) =&gt; void</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
+
+--------------------
+
+
+### addListener('bluetoothSearchChange', ...)
+
+```typescript
+addListener(eventName: 'bluetoothSearchChange', listenerFunc: (res: Device) => void) => Promise<PluginListenerHandle> & PluginListenerHandle
+```
+
+Listens for bluetooth datecs printer connection status changes.
+
+| Param              | Type                                                        |
+| ------------------ | ----------------------------------------------------------- |
+| **`eventName`**    | <code>'bluetoothSearchChange'</code>                        |
+| **`listenerFunc`** | <code>(res: <a href="#device">Device</a>) =&gt; void</code> |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
+
+--------------------
+
+
+### scanBluetoothDevice()
+
+```typescript
+scanBluetoothDevice() => Promise<void>
+```
+
+Scan bluetooth device, automatically ask for permission.
 
 --------------------
 
@@ -129,6 +160,11 @@ print(param: PrintParam) => Promise<void>
 #### ConnectionStatus
 
 <code>{ status: string; }</code>
+
+
+#### Device
+
+<code>{ name: string; address: string; }</code>
 
 
 #### ConnectParam

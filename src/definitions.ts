@@ -4,6 +4,11 @@ export type ConnectionStatus = {
   status: string;
 };
 
+export type Device = {
+  name: string;
+  address: string;
+};
+
 export type PrintParam = {
   content: string;
 };
@@ -32,11 +37,22 @@ export interface DatecsPrinterPlugin {
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
 
   /**
+   * Listens for bluetooth datecs printer connection status changes.
+   */
+  addListener(
+    eventName: 'bluetoothSearchChange',
+    listenerFunc: (res: Device) => void,
+  ): Promise<PluginListenerHandle> & PluginListenerHandle;
+
+  /**
+   * Scan bluetooth device, automatically ask for permission.
+   */
+  scanBluetoothDevice(): Promise<void>;
+
+  /**
    * Removes all listeners
    */
   removeAllListeners(): Promise<void>;
-
-  // setAddress(addressObj: BluetoothAddress): Promise<void>;
 
   connect(connectParam: ConnectParam): Promise<void>;
 
