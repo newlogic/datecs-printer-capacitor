@@ -9,6 +9,11 @@ export class DatecsPrinterPluginWeb
   constructor() {
     super();
   }
+
+  scanBluetoothDevice(): Promise<void> {
+    throw new Error('Not available on web.');
+  }
+
   connect(): Promise<void> {
     throw this.unavailable('Not available on web.');
   }

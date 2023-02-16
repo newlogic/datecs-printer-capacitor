@@ -17,6 +17,7 @@ npx cap sync
 * [`getBluetoothPairedDevices()`](#getbluetoothpaireddevices)
 * [`addListener('bluetoothChange', ...)`](#addlistenerbluetoothchange)
 * [`addListener('bluetoothSearchChange', ...)`](#addlistenerbluetoothsearchchange)
+* [`scanBluetoothDevice()`](#scanbluetoothdevice)
 * [`removeAllListeners()`](#removealllisteners)
 * [`connect(...)`](#connect)
 * [`print(...)`](#print)
@@ -86,6 +87,17 @@ Listens for bluetooth datecs printer connection status changes.
 | **`listenerFunc`** | <code>(res: <a href="#device">Device</a>) =&gt; void</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
+
+--------------------
+
+
+### scanBluetoothDevice()
+
+```typescript
+scanBluetoothDevice() => Promise<void>
+```
+
+Scan bluetooth device, automatically ask for permission.
 
 --------------------
 
