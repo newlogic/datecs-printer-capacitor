@@ -1,3 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="newlogic.plugins.datecsprinter">
+
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 </manifest>

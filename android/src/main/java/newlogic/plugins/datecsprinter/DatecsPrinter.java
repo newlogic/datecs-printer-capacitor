@@ -5,17 +5,20 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Log;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.datecs.printer.ProtocolAdapter;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,15 +26,14 @@ import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.UUID;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class DatecsPrinter {
 
     @Nullable
     private AppCompatActivity activity;
 
-    private BroadcastReceiver receiver;
+    private BroadcastReceiver bluetoothStateReceiver;
+    private BroadcastReceiver searchBluetoothReceiver;
     private Printer mPrinter;
     private ProtocolAdapter mProtocolAdapter;
     private BluetoothSocket mBluetoothSocket;
@@ -64,20 +66,34 @@ public class DatecsPrinter {
         this.activity = activity;
     }
 
-    public void setReceiver(BroadcastReceiver receiver) {
-        this.receiver = receiver;
+    public void setBLStateReceiver(BroadcastReceiver receiver) {
+        this.bluetoothStateReceiver = receiver;
     }
 
+    public void setSearchBluetoothReceiverReceiver(BroadcastReceiver receiver) {
+        this.searchBluetoothReceiver = receiver;
+    }
+
+    @SuppressLint("MissingPermission")
     public void startMonitoring(@NonNull AppCompatActivity activity) {
+        IntentFilter searchBluetoothFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
 
-        activity.registerReceiver(receiver, filter);
+        activity.registerReceiver(bluetoothStateReceiver, filter);
+        activity.registerReceiver(searchBluetoothReceiver, searchBluetoothFilter);
     }
 
     public void stopMonitoring(@NonNull AppCompatActivity activity) {
-        activity.unregisterReceiver(receiver);
+        activity.unregisterReceiver(bluetoothStateReceiver);
+        activity.unregisterReceiver(searchBluetoothReceiver);
+    }
+
+    @SuppressLint("MissingPermission")
+    public void startScanBluetoothDevice() {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mBluetoothAdapter.startDiscovery();
     }
 
     @SuppressLint("MissingPermission")
@@ -195,10 +211,10 @@ public class DatecsPrinter {
         }
 
         mPrinter.setConnectionListener(
-            new Printer.ConnectionListener() {
-                @Override
-                public void onDisconnect() {}
-            }
+                new Printer.ConnectionListener() {
+                    @Override
+                    public void onDisconnect() {}
+                }
         );
     }
 
@@ -221,7 +237,7 @@ public class DatecsPrinter {
             //fallback
             try {
                 mBluetoothSocket =
-                    (BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] { int.class }).invoke(device, 1);
+                        (BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] { int.class }).invoke(device, 1);
                 Thread.sleep(50);
                 mBluetoothSocket.connect();
                 in = mBluetoothSocket.getInputStream();
