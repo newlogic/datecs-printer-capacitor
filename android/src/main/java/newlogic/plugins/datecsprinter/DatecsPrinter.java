@@ -6,19 +6,15 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
+import android.util.Log;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.datecs.printer.ProtocolAdapter;
 import com.getcapacitor.JSObject;
+import com.getcapacitor.Logger;
 import com.getcapacitor.PluginCall;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,6 +22,8 @@ import java.lang.reflect.Method;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.UUID;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class DatecsPrinter {
 
@@ -91,9 +89,16 @@ public class DatecsPrinter {
     }
 
     @SuppressLint("MissingPermission")
-    public void startScanBluetoothDevice() {
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mBluetoothAdapter.startDiscovery();
+    public void startScanBluetoothDevice(PluginCall call) {
+        try {
+            BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            mBluetoothAdapter.cancelDiscovery();
+            mBluetoothAdapter.startDiscovery();
+            call.resolve();
+        } catch (Exception e) {
+            call.reject(String.valueOf(e), e);
+            Logger.error(String.valueOf(e));
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -211,10 +216,10 @@ public class DatecsPrinter {
         }
 
         mPrinter.setConnectionListener(
-                new Printer.ConnectionListener() {
-                    @Override
-                    public void onDisconnect() {}
-                }
+            new Printer.ConnectionListener() {
+                @Override
+                public void onDisconnect() {}
+            }
         );
     }
 
@@ -237,7 +242,7 @@ public class DatecsPrinter {
             //fallback
             try {
                 mBluetoothSocket =
-                        (BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] { int.class }).invoke(device, 1);
+                    (BluetoothSocket) device.getClass().getMethod("createRfcommSocket", new Class[] { int.class }).invoke(device, 1);
                 Thread.sleep(50);
                 mBluetoothSocket.connect();
                 in = mBluetoothSocket.getInputStream();

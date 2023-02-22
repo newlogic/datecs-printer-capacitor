@@ -7,7 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-
+import android.os.Build;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -17,7 +17,21 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
-@CapacitorPlugin(name = "DatecsPrinter", permissions = {@Permission(alias = "bluetooth", strings = {Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION})})
+@CapacitorPlugin(
+    name = "DatecsPrinter",
+    permissions = {
+        @Permission(
+            alias = "old_bluetooth",
+            strings = {
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            }
+        ),
+        @Permission(alias = "new_bluetooth", strings = { Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN })
+    }
+)
 public class DatecsPrinterPlugin extends Plugin {
 
     public static final String BLUETOOTH_STATUS_CHANGE = "bluetoothChange";
@@ -54,33 +68,35 @@ public class DatecsPrinterPlugin extends Plugin {
     @Override
     public void load() {
         implementation = new DatecsPrinter(getActivity());
-        implementation.setBLStateReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                String action = intent.getAction();
+        implementation.setBLStateReceiver(
+            new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                    String action = intent.getAction();
 
-                if (isBluetoothOn(state)) {
-                    updateConnectionStatus(BLUETOOTH_ON);
-                } else {
-                    updateConnectionStatus(BLUETOOTH_OFF);
-                }
-                return;
-            }
-        });
-        implementation.setSearchBluetoothReceiverReceiver(new BroadcastReceiver() {
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    // Discovery has found a device. Get the BluetoothDevice
-                    // object and its info from the Intent.
-                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    updateSearchStatus(device);
+                    if (isBluetoothOn(state)) {
+                        updateConnectionStatus(BLUETOOTH_ON);
+                    } else {
+                        updateConnectionStatus(BLUETOOTH_OFF);
+                    }
+                    return;
                 }
             }
-        });
-
-
+        );
+        implementation.setSearchBluetoothReceiverReceiver(
+            new BroadcastReceiver() {
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                        // Discovery has found a device. Get the BluetoothDevice
+                        // object and its info from the Intent.
+                        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                        updateSearchStatus(device);
+                    }
+                }
+            }
+        );
     }
 
     @Override
@@ -93,22 +109,39 @@ public class DatecsPrinterPlugin extends Plugin {
         implementation.stopMonitoring(getActivity());
     }
 
-    @PluginMethod()
+    @PluginMethod
     public void scanBluetoothDevice(PluginCall call) {
-        if (getPermissionState("bluetooth") != PermissionState.GRANTED) {
-            requestPermissionForAlias("bluetooth", call, "scanBluetoothDeviceCallback");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (getPermissionState("new_bluetooth") != PermissionState.GRANTED) {
+                requestPermissionForAlias("new_bluetooth", call, "scanBluetoothDeviceCallback");
+            } else {
+                implementation.startScanBluetoothDevice(call);
+            }
         } else {
-            implementation.startScanBluetoothDevice();
-            call.resolve();
+            if (getPermissionState("old_bluetooth") != PermissionState.GRANTED) {
+                requestPermissionForAlias("old_bluetooth", call, "scanBluetoothDeviceCallback");
+            } else {
+                implementation.startScanBluetoothDevice(call);
+            }
         }
     }
 
     @PermissionCallback
     private void scanBluetoothDeviceCallback(PluginCall call) {
-        if (getPermissionState("bluetooth") == PermissionState.GRANTED) {
-            implementation.startScanBluetoothDevice();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (getPermissionState("new_bluetooth") == PermissionState.GRANTED) {
+                implementation.startScanBluetoothDevice(call);
+                call.resolve();
+            } else {
+                call.reject("Permission is required to scan bluetooth");
+            }
         } else {
-            call.reject("Permission is required to scan bluetooth");
+            if (getPermissionState("old_bluetooth") == PermissionState.GRANTED) {
+                implementation.startScanBluetoothDevice(call);
+                call.resolve();
+            } else {
+                call.reject("Permission is required to scan bluetooth");
+            }
         }
     }
 
